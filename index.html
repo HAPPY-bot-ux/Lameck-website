@@ -1,11 +1,275 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>MAPS-LOGISTICS | 2026 Initiative</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Inter:wght@200;400;900&family=JetBrains+Mono&display=swap');
+        
+        :root {
+            --cyan: #00f2ff;
+            --deep-space: #020617;
+            --obsidian: #000000;
+        }
+
+        body {
+            background-color: var(--obsidian);
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .heading { font-family: 'Syncopate', sans-serif; text-transform: uppercase; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+
+        /* THE GRID: Infinite Horizon */
+        .grid-plane {
+            position: fixed;
+            width: 400%;
+            height: 400%;
+            top: -150%;
+            left: -150%;
+            background-image: 
+                linear-gradient(to right, rgba(0, 242, 255, 0.08) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0, 242, 255, 0.08) 1px, transparent 1px);
+            background-size: 50px 50px;
+            transform: perspective(1000px) rotateX(60deg);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* HERO IMAGE TREATMENT: Solving your white-image visibility issue */
+        .hero-mask {
+            position: relative;
+            background: url('./images/2149103440.jpg') center/cover no-repeat;
+            overflow: hidden;
+        }
+
+        .hero-mask::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            /* This gradient ensures text visibility over white images */
+            background: linear-gradient(to bottom, 
+                rgba(0,0,0,0.85) 0%, 
+                rgba(0,0,0,0.4) 50%, 
+                var(--obsidian) 100%);
+        }
+
+        /* ADVANCED 3D MONOLITH */
+        .viewport-3d {
+            perspective: 2000px;
+            height: 100vh;
+            width: 100%;
+            position: fixed;
+            top: 0;
+            z-index: 20;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .monolith {
+            width: 140px;
+            height: 280px;
+            background: linear-gradient(135deg, rgba(0, 242, 255, 0.9), transparent);
+            border: 1px solid var(--cyan);
+            box-shadow: 0 0 80px rgba(0, 242, 255, 0.3), inset 0 0 20px rgba(0, 242, 255, 0.5);
+            transform-style: preserve-3d;
+            transition: transform 0.2s ease-out;
+        }
+
+        .cyber-glass {
+            background: rgba(10, 10, 10, 0.7);
+            backdrop-filter: blur(25px) saturate(150%);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        /* GLITCH ANIMATION */
+        .glitch-text:hover {
+            animation: glitch 0.3s cubic-bezier(.25,.46,.45,.94) both infinite;
+        }
+
+        @keyframes glitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); color: var(--cyan); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+            100% { transform: translate(0); }
+        }
+
+        @media (max-width: 768px) {
+            .monolith { width: 80px; height: 160px; }
+        }
+    </style>
 </head>
 <body>
-    
+
+    <div id="grid-plane" class="grid-plane"></div>
+
+    <div class="fixed inset-0 z-[100] pointer-events-none p-6 flex flex-col justify-between">
+        <div class="flex justify-between items-start">
+            <div class="mono text-[9px] text-cyan-400 bg-black/80 p-4 border border-cyan-500/30 backdrop-blur-xl rounded-sm">
+                <p class="flex items-center gap-2"><span class="w-2 h-2 bg-cyan-500 animate-ping"></span> LOGISTICS_OS: CONNECTED</p>
+                <p>LATENCY: 0.0003ms</p>
+                <p>LOAD_BAL: OPTIMAL</p>
+                <p class="mt-2 text-white">GRID_LAT: <span id="hud-lat">40.71</span></p>
+            </div>
+            <div class="text-right heading text-[9px] tracking-[0.4em] text-white/60">
+                Maps // Logistics <br/> <span class="text-cyan-400">Spatial Alpha v.26</span>
+            </div>
+        </div>
+        <div class="flex justify-between items-end">
+            <div class="mono text-[8px] text-white/20 uppercase max-w-[150px]">
+                Quantum Ledger Verified. No physical border latency detected.
+            </div>
+            <div id="hud-clock" class="heading text-cyan-500 text-xl md:text-3xl font-black">00:00:00</div>
+        </div>
+    </div>
+
+    <div class="viewport-3d">
+        <div id="actor" class="monolith relative">
+            <div class="absolute inset-4 border border-white/20 flex items-center justify-center">
+                <div class="w-1 h-full bg-cyan-400/50 shadow-[0_0_20px_var(--cyan)]"></div>
+            </div>
+        </div>
+    </div>
+
+    <nav class="fixed top-0 w-full z-[150] px-8 py-10 flex justify-between items-center transition-all" id="main-nav">
+        <div class="flex flex-col">
+            <span class="heading text-2xl tracking-tighter glitch-text cursor-pointer">MAPS-LOGS</span>
+            <span class="mono text-[7px] tracking-[0.8em] text-cyan-500 opacity-70">QUANTUM_CARRIER</span>
+        </div>
+        <div class="hidden md:flex gap-10 items-center mono text-[10px] tracking-widest text-white/50">
+            <a href="#" class="hover:text-cyan-400 transition">SYSTEMS</a>
+            <a href="#" class="hover:text-cyan-400 transition">FLEET</a>
+            <button class="bg-cyan-500 text-black px-8 py-3 rounded-sm font-black hover:bg-white transition-all">CONNECT_NODE</button>
+        </div>
+    </nav>
+
+    <main class="relative z-50">
+
+        <section class="h-[140vh] hero-mask flex items-center justify-center px-6">
+            <div class="text-center relative z-10">
+                <span class="mono text-cyan-500 tracking-[1.2em] text-[10px] mb-6 block animate-pulse">INITIATING GLOBAL DEPLOYMENT</span>
+                <h1 class="heading text-6xl md:text-[11rem] leading-none mb-4 italic font-black tracking-tighter">
+                    TRACK <br/> <span class="text-white"> & </span> <span class="text-cyan-400">GO.</span>
+                </h1>
+                <p class="max-w-xl mx-auto text-white/60 font-light tracking-[0.2em] text-xs md:text-sm leading-relaxed uppercase">
+                    The infrastructure for the next billion movements. <br/> 
+                    Redefining spatial mastery through neural fleet intelligence.
+                </p>
+            </div>
+        </section>
+
+        <section class="min-h-screen py-32 px-6">
+            <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="cyber-glass p-12 rounded-sm border-l-4 border-l-cyan-500">
+                    <span class="mono text-cyan-500 text-xs tracking-widest block mb-4">MODULE_01</span>
+                    <h3 class="heading text-2xl mb-6">Neural <br/> Routing</h3>
+                    <p class="text-white/40 text-sm leading-relaxed mb-8">Asset rerouting occurs 400 miles before traffic peaks using predictive satellite telemetry.</p>
+                    <div class="text-4xl font-black">0.02s</div>
+                    <div class="mono text-[9px] opacity-30 mt-2">REACTION_VELOCITY</div>
+                </div>
+
+                <div class="cyber-glass p-12 rounded-sm mt-12 md:mt-0">
+                    <span class="mono text-white/30 text-xs tracking-widest block mb-4">MODULE_02</span>
+                    <h3 class="heading text-2xl mb-6">Quantum <br/> Clearing</h3>
+                    <p class="text-white/40 text-sm leading-relaxed mb-8">Cross-border protocols are handled by autonomous ledger agents in real-time.</p>
+                    <div class="text-4xl font-black text-cyan-400">100%</div>
+                    <div class="mono text-[9px] opacity-30 mt-2">BORDER_EFFICIENCY</div>
+                </div>
+
+                <div class="cyber-glass p-12 rounded-sm mt-12 md:mt-24">
+                    <span class="mono text-cyan-500 text-xs tracking-widest block mb-4">MODULE_03</span>
+                    <h3 class="heading text-2xl mb-6">Kinetic <br/> Fleet</h3>
+                    <p class="text-white/40 text-sm leading-relaxed mb-8">Autonomous heavy-freight units engineered for zero-stop global transit.</p>
+                    <div class="text-4xl font-black">GEN-6</div>
+                    <div class="mono text-[9px] opacity-30 mt-2">VEHICLE_ARCHITECTURE</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="min-h-screen flex items-center justify-center p-6 bg-gradient-to-t from-cyan-950/20 to-transparent">
+            <div class="w-full max-w-4xl cyber-glass p-12 md:p-32 rounded-sm text-center relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-1 bg-cyan-500"></div>
+                <h2 class="heading text-4xl md:text-8xl mb-12 italic">JOIN THE <br/> <span class="text-cyan-400">NETWORK.</span></h2>
+                <div class="flex flex-col md:flex-row gap-4 items-center justify-center">
+                    <input type="email" placeholder="ENTER_ENTITY_ACCESS_CODE" class="bg-white/5 border border-white/10 px-10 py-5 rounded-sm mono text-xs outline-none focus:border-cyan-500 transition-all w-full md:w-96 text-center">
+                    <button class="bg-white text-black px-12 py-5 rounded-sm heading text-xs font-black tracking-widest hover:bg-cyan-400 transition-all w-full md:w-auto">
+                        REQUEST_SYNC
+                    </button>
+                </div>
+                <p class="mt-12 mono text-[9px] text-white/20 tracking-widest uppercase">Encryption Key Required for Enterprise Onboarding</p>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        let mouseX = 0;
+        let mouseY = 0;
+
+        window.addEventListener('mousemove', (e) => {
+            mouseX = (e.clientX / window.innerWidth) - 0.5;
+            mouseY = (e.clientY / window.innerHeight) - 0.5;
+        });
+
+        window.addEventListener('scroll', () => {
+            const scrollY = window.scrollY;
+            const docHeight = document.body.scrollHeight - window.innerHeight;
+            const progress = scrollY / docHeight;
+            
+            const actor = document.getElementById('actor');
+            const grid = document.getElementById('grid-plane');
+            const nav = document.getElementById('main-nav');
+            
+            // NAVIGATION BLUR
+            if (scrollY > 50) {
+                nav.style.background = "rgba(0,0,0,0.8)";
+                nav.style.padding = "20px 32px";
+            } else {
+                nav.style.background = "transparent";
+                nav.style.padding = "40px 32px";
+            }
+
+            // 3D MOTION WITH MOUSE INFLUENCE
+            const xMove = (progress * 1400) - 700 + (mouseX * 50);
+            const yMove = (mouseY * 50);
+            const zMove = Math.sin(progress * Math.PI) * 600;
+            const rotateY = (progress * 1080) + (mouseX * 20); // 3 Full spins
+            const rotateX = (progress * 360) + (mouseY * 20);
+
+            actor.style.transform = `
+                translateX(${xMove}px) 
+                translateY(${yMove}px)
+                translateZ(${zMove}px) 
+                rotateY(${rotateY}deg) 
+                rotateX(${rotateX}deg)
+            `;
+
+            // GRID MOTION
+            grid.style.transform = `perspective(1000px) rotateX(60deg) translateY(${scrollY * 0.6}px)`;
+
+            // HUD UPDATES
+            document.getElementById('hud-lat').innerText = (40.7128 + (progress * 25)).toFixed(4);
+        });
+
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('hud-clock').innerText = 
+                now.getHours().toString().padStart(2, '0') + ":" + 
+                now.getMinutes().toString().padStart(2, '0') + ":" + 
+                now.getSeconds().toString().padStart(2, '0');
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+    </script>
 </body>
 </html>
