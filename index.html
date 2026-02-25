@@ -583,7 +583,8 @@
 </section>
 
     <!-- contact section -->
- 
+ <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+
   <section id="contact" class="py-20 lg:py-32 px-4 md:px-6 bg-black relative overflow-hidden">
     <div class="max-w-7xl mx-auto">
 
@@ -727,13 +728,267 @@
                     <p class="text-[10px] font-black tracking-[0.3em] mb-2 opacity-70">NEED IT NOW?</p>
                     <h4 class="text-3xl font-black italic leading-none mb-4">WHATSAPP LAMECK</h4>
                     <a href="https://wa.me/27825556789" class="text-xl font-bold flex items-center gap-2">
-                        +27 82 555 6789 <span class="group-hover:translate-x-2 transition-transform">→</span>
+                        +27 69 350 3889 <span class="group-hover:translate-x-2 transition-transform">→</span>
                     </a>
                 </div>
             </div>
         </div>
     </div>
 </section>
+
+<script>
+    // Initialize EmailJS with your public key
+    (function() {
+        emailjs.init("M0nvpqWlZLcvxYyt8"); // Replace with your actual EmailJS public key
+    })();
+
+    const form = document.getElementById('multi-step-form');
+    const steps = Array.from(document.querySelectorAll('.form-step'));
+    const nextBtn = document.getElementById('next-btn');
+    const prevBtn = document.getElementById('prev-btn');
+    const submitBtn = document.getElementById('submit-btn');
+    const progress = document.getElementById('progress-bar');
+    const stepLabel = document.getElementById('step-label');
+    const stepTitle = document.getElementById('step-title');
+    const stepPercent = document.getElementById('step-percent');
+    const successOverlay = document.getElementById('success-overlay');
+    const progressContainer = document.getElementById('progress-container');
+
+    let currentStep = 1;
+    const titles = ["Where are we moving?", "What are we carrying?", "Final Details"];
+    const labels = ["Step 1: The Route", "Step 2: The Cargo", "Step 3: Contact Info"];
+
+    function updateUI() {
+        steps.forEach(step => {
+            step.classList.toggle('hidden', parseInt(step.dataset.step) !== currentStep);
+        });
+
+        prevBtn.classList.toggle('hidden', currentStep === 1);
+        
+        if (currentStep === steps.length) {
+            nextBtn.classList.add('hidden');
+            submitBtn.classList.remove('hidden');
+        } else {
+            nextBtn.classList.remove('hidden');
+            submitBtn.classList.add('hidden');
+        }
+
+        const percent = (currentStep / steps.length) * 100;
+        progress.style.width = `${percent}%`;
+        stepPercent.innerText = `${Math.round(percent)}%`;
+        stepLabel.innerText = labels[currentStep-1];
+        stepTitle.innerText = titles[currentStep-1];
+    }
+
+    nextBtn.addEventListener('click', () => {
+        const activeStep = steps[currentStep-1];
+        const inputs = activeStep.querySelectorAll('input[required], select[required], textarea[required]');
+        let valid = true;
+        
+        inputs.forEach(i => { 
+            if(!i.checkValidity()) { 
+                i.reportValidity(); 
+                valid = false; 
+            } 
+        });
+        
+        if (valid) {
+            currentStep++;
+            updateUI();
+        }
+    });
+
+    prevBtn.addEventListener('click', () => {
+        if (currentStep > 1) {
+            currentStep--;
+            updateUI();
+        }
+    });
+
+    // Function to collect all form data
+    function collectFormData() {
+        const formData = {
+            pickup: document.querySelector('[name="pickup"]').value,
+            delivery: document.querySelector('[name="delivery"]').value,
+            service: document.querySelector('[name="service"]').value,
+            volume: document.querySelector('[name="volume"]').value,
+            value: document.querySelector('[name="value"]').value,
+            inventory: document.querySelector('[name="inventory"]').value,
+            name: document.querySelector('[name="name"]').value,
+            phone: document.querySelector('[name="phone"]').value,
+            move_date: document.querySelector('[name="move_date"]').value || 'Not specified',
+            // Add timestamp
+            submitted_at: new Date().toLocaleString('en-ZA', { 
+                timeZone: 'Africa/Johannesburg',
+                dateStyle: 'full',
+                timeStyle: 'short'
+            })
+        };
+        return formData;
+    }
+
+   // Function to send email via EmailJS
+async function sendEmail(formData) {
+    // Show loading state on submit button
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = 'SENDING...';
+    submitBtn.disabled = true;
+
+    try {
+        // Format the service type for better display
+        const serviceFormatted = formData.service 
+            ? formData.service.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+            : 'Not specified';
+        
+        // Format volume for better display
+        const volumeFormatted = formData.volume
+            ? formData.volume.split('-').map(word => 
+                word.charAt(0).toUpperCase() + word.slice(1)
+              ).join(' ')
+            : 'Not specified';
+
+        // Create a comprehensive message that combines all details
+        const fullMessage = `Moving from ${formData.pickup} to ${formData.delivery}. 
+Service: ${serviceFormatted}
+Volume: ${volumeFormatted}
+Insurance: ${formData.value}
+Target Date: ${formData.move_date || 'Not specified'}
+
+Inventory Details:
+${formData.inventory}`;
+
+        // EmailJS parameters - matching your template variables
+        const templateParams = {
+            // Basic info (matches your template)
+            name: formData.name,
+            phone: formData.phone,
+            time: new Date().toLocaleString('en-ZA', { 
+                timeZone: 'Africa/Johannesburg',
+                dateStyle: 'full',
+                timeStyle: 'short'
+            }),
+            message: fullMessage,
+            
+            // Additional fields for the enhanced template
+            pickup: formData.pickup,
+            delivery: formData.delivery,
+            service: formData.service,
+            service_formatted: serviceFormatted,
+            volume: formData.volume,
+            volume_formatted: volumeFormatted,
+            value: formData.value,
+            inventory: formData.inventory,
+            move_date: formData.move_date || 'Not specified',
+            
+            // For Lameck's reference
+            to_name: 'Lameck Mapepa',
+            from_name: formData.name,
+            from_phone: formData.phone
+        };
+
+        // Send the email using EmailJS
+        // Replace with your actual Service ID and Template ID
+        const response = await emailjs.send(
+            'service_z2u9rd4',      // e.g., 'service_xyz123'
+            'template_23edybb',     // e.g., 'template_abc456'
+            templateParams
+        );
+
+        console.log('Email sent successfully:', response);
+        return { success: true, response };
+    } catch (error) {
+        console.error('Email sending failed:', error);
+        return { success: false, error };
+    } finally {
+        // Restore button state
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    }
+}
+
+    // Form submission handler
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        // Validate all required fields across all steps
+        let allValid = true;
+        steps.forEach(step => {
+            const inputs = step.querySelectorAll('input[required], select[required], textarea[required]');
+            inputs.forEach(i => { 
+                if(!i.checkValidity()) { 
+                    i.reportValidity(); 
+                    allValid = false; 
+                } 
+            });
+        });
+
+        if (!allValid) {
+            // Find the first step with invalid fields and navigate to it
+            for (let i = 0; i < steps.length; i++) {
+                const step = steps[i];
+                const invalidInputs = step.querySelectorAll('input[required]:invalid, select[required]:invalid, textarea[required]:invalid');
+                if (invalidInputs.length > 0) {
+                    currentStep = i + 1;
+                    updateUI();
+                    break;
+                }
+            }
+            return;
+        }
+
+        // Collect form data
+        const formData = collectFormData();
+
+        // Send email via EmailJS
+        const result = await sendEmail(formData);
+
+        if (result.success) {
+            // Show success overlay
+            successOverlay.classList.remove('hidden');
+            
+            // Animate success overlay
+            setTimeout(() => {
+                successOverlay.style.opacity = '1';
+            }, 10);
+            
+            // Hide form elements
+            progressContainer.classList.add('opacity-0');
+            form.classList.add('opacity-0');
+            
+            // Optional: Store in localStorage as backup
+            localStorage.setItem('lastQuoteRequest', JSON.stringify(formData));
+        } else {
+            // Show error message to user
+            alert('Failed to send your request. Please try again or contact Lameck directly via WhatsApp.');
+        }
+    });
+
+    // Add form data validation for date input
+    const dateInput = document.querySelector('input[type="date"]');
+    if (dateInput) {
+        // Set minimum date to today
+        const today = new Date().toISOString().split('T')[0];
+        dateInput.min = today;
+    }
+
+    // Initialize UI
+    updateUI();
+
+    // Optional: Add loading state styles
+    const style = document.createElement('style');
+    style.textContent = `
+        button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        .opacity-0 {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+    `;
+    document.head.appendChild(style);
+</script>
 
 <style>
     /* 1. Namespace the form-step to prevent global layout shifts */
@@ -777,74 +1032,6 @@
     }
 </style>
 
-<script>
-    const form = document.getElementById('multi-step-form');
-    const steps = Array.from(document.querySelectorAll('.form-step'));
-    const nextBtn = document.getElementById('next-btn');
-    const prevBtn = document.getElementById('prev-btn');
-    const submitBtn = document.getElementById('submit-btn');
-    const progress = document.getElementById('progress-bar');
-    const stepLabel = document.getElementById('step-label');
-    const stepTitle = document.getElementById('step-title');
-    const stepPercent = document.getElementById('step-percent');
-    const successOverlay = document.getElementById('success-overlay');
-
-    let currentStep = 1;
-    const titles = ["Where are we moving?", "What are we carrying?", "Final Details"];
-    const labels = ["Step 1: The Route", "Step 2: The Cargo", "Step 3: Contact Info"];
-
-    function updateUI() {
-        steps.forEach(step => {
-            step.classList.toggle('hidden', parseInt(step.dataset.step) !== currentStep);
-        });
-
-        prevBtn.classList.toggle('hidden', currentStep === 1);
-        
-        if (currentStep === steps.length) {
-            nextBtn.classList.add('hidden');
-            submitBtn.classList.remove('hidden');
-        } else {
-            nextBtn.classList.remove('hidden');
-            submitBtn.classList.add('hidden');
-        }
-
-        const percent = (currentStep / steps.length) * 100;
-        progress.style.width = `${percent}%`;
-        stepPercent.innerText = `${Math.round(percent)}%`;
-        stepLabel.innerText = labels[currentStep-1];
-        stepTitle.innerText = titles[currentStep-1];
-    }
-
-    nextBtn.addEventListener('click', () => {
-        const activeStep = steps[currentStep-1];
-        const inputs = activeStep.querySelectorAll('input[required], select[required], textarea[required]');
-        let valid = true;
-        
-        inputs.forEach(i => { if(!i.checkValidity()) { i.reportValidity(); valid = false; } });
-        
-        if (valid) {
-            currentStep++;
-            updateUI();
-        }
-    });
-
-    prevBtn.addEventListener('click', () => {
-        if (currentStep > 1) {
-            currentStep--;
-            updateUI();
-        }
-    });
-
-    form.addEventListener('submit', (e) => {
-        e.preventDefault();
-        successOverlay.classList.remove('hidden');
-        setTimeout(() => {
-            successOverlay.style.opacity = '1';
-        }, 10);
-        document.getElementById('progress-container').classList.add('opacity-0');
-        form.classList.add('opacity-0');
-    });
-</script>
 
     <!-- footer section -->
  <footer id="quote" class="py-24 px-6 bg-[#050505] text-white overflow-hidden relative">
